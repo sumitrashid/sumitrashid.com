@@ -1,0 +1,195 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { site } from '../data/site';
+
+// =====================================================
+// HOMEPAGE PHOTOS
+// To use your own photographs, upload them to the
+// "public/images" folder and change the file names below.
+// =====================================================
+const featuredPhoto = {
+  src: '/images/placeholder-portrait.svg',
+  alt: 'A placeholder for the featured photograph',
+  caption: 'Caption goes here.',
+  place: 'LOCATION · YEAR',
+};
+
+const photoStrip = [
+  { src: '/images/placeholder-dark.svg', alt: 'Photograph placeholder', height: 420 },
+  { src: '/images/placeholder-portrait.svg', alt: 'Photograph placeholder', height: 540 },
+  { src: '/images/placeholder-dark.svg', alt: 'Photograph placeholder', height: 360 },
+];
+// =====================================================
+// Everything below this line builds the page automatically.
+// =====================================================
+
+const byDate = (a, b) => b.data.date.valueOf() - a.data.date.valueOf();
+const published = ({ data }) => !data.draft;
+
+const perspectives = (await getCollection('perspectives', published)).sort(byDate);
+const travel = (await getCollection('travel', published)).sort(byDate);
+const culture = (await getCollection('culture', published)).sort(byDate);
+const journal = (await getCollection('journal', published)).sort(byDate);
+
+const fmt = (d: Date) =>
+  d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+const mins = (body?: string) =>
+  Math.max(1, Math.round((body ?? '').trim().split(/\s+/).length / 220));
+---
+
+<BaseLayout>
+  <div class="wrap">
+    <div class="masthead">
+      <h1 class="serif masthead-title">{site.name}</h1>
+      <p class="serif muted masthead-tagline">{site.tagline}</p>
+    </div>
+    <hr class="rule" />
+
+    <div class="grid-intro">
+      <div style="max-width: 470px">
+        <p class="label" style="margin: 0 0 18px">Introduction</p>
+        <p class="serif" style="font-size: 2.1rem; font-weight: 400; margin: 0 0 22px">
+          {site.introHeadline}
+        </p>
+        {site.introParagraphs.map((p) => <p class="muted" style="margin: 0 0 14px">{p}</p>)}
+        <p style="margin-top: 22px"><a href="/about/" class="label link-arrow">About me</a></p>
+      </div>
+      <figure style="margin: 0">
+        <img class="photo" src={featuredPhoto.src} alt={featuredPhoto.alt} width="800" height="1000" style="aspect-ratio: 4 / 5" />
+        <figcaption class="caption">
+          {featuredPhoto.caption} <span style="letter-spacing: 0.08em">{featuredPhoto.place}</span>
+        </figcaption>
+      </figure>
+    </div>
+
+    {perspectives.length > 0 && (
+      <section class="section">
+        <div class="section-head">
+          <h2 class="serif">Perspectives</h2>
+          <a href="/perspectives/" class="label">All essays →</a>
+        </div>
+        <div class="grid-feature">
+          <article>
+            <a href={`/perspectives/${perspectives[0].id}/`}>
+              {perspectives[0].data.cover ? (
+                <img class="photo" src={perspectives[0].data.cover} alt={perspectives[0].data.coverAlt ?? ''} style="height: 380px" />
+              ) : (
+                <div class="ph" style="height: 380px; background: #B9B9A0">Cover image</div>
+              )}
+              <p class="label" style="margin: 22px 0 8px">
+                {perspectives[0].data.category ?? 'Essay'} · {mins(perspectives[0].body)} min read · {fmt(perspectives[0].data.date)}
+              </p>
+              <h3 class="serif" style="font-size: 2.4rem">{perspectives[0].data.title}</h3>
+            </a>
+            <p class="muted" style="margin: 12px 0 0; max-width: 560px">{perspectives[0].data.summary}</p>
+          </article>
+          <div class="stack">
+            {perspectives.slice(1, 3).map((e) => (
+              <article class="story-small">
+                <p class="label" style="margin: 0 0 8px">{e.data.category ?? 'Essay'} · {mins(e.body)} min</p>
+                <h3 class="serif" style="font-size: 1.75rem"><a href={`/perspectives/${e.id}/`}>{e.data.title}</a></h3>
+                <p class="muted" style="margin: 8px 0 0; font-size: 0.95rem">{e.data.summary}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+    )}
+  </div>
+
+  <section class="band-dark">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 class="serif">Photography</h2>
+        <a href="/photography/" class="label">Open the gallery →</a>
+      </div>
+      <div class="photo-row">
+        {photoStrip.map((p) => (
+          <img class="photo" src={p.src} alt={p.alt} style={`height: ${p.height}px`} loading="lazy" />
+        ))}
+      </div>
+      <p class="caption" style="color: #B8B4A8">Street · Landscape · Architecture · Travel · Everyday life</p>
+    </div>
+  </section>
+
+  <div class="wrap">
+    {travel.length > 0 && (
+      <section class="section">
+        <div class="section-head">
+          <h2 class="serif">Travel &amp; Places</h2>
+          <a href="/travel/" class="label">All journeys →</a>
+        </div>
+        <div class="grid-two">
+          <article>
+            <a href={`/travel/${travel[0].id}/`}>
+              {travel[0].data.cover ? (
+                <img class="photo" src={travel[0].data.cover} alt={travel[0].data.coverAlt ?? ''} style="height: 340px" />
+              ) : (
+                <div class="ph" style="height: 340px">Cover image</div>
+              )}
+              <p class="label" style="margin: 20px 0 8px">{travel[0].data.location}{travel[0].data.country ? `, ${travel[0].data.country}` : ''}</p>
+              <h3 class="serif" style="font-size: 2.25rem">{travel[0].data.title}</h3>
+            </a>
+          </article>
+          <div class="stack" style="gap: 28px">
+            {travel.slice(1, 3).map((e) => (
+              <article>
+                <p class="label" style="margin: 0 0 6px">{e.data.location}</p>
+                <h3 class="serif" style="font-size: 1.6rem"><a href={`/travel/${e.id}/`}>{e.data.title}</a></h3>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+    )}
+
+    {culture.length > 0 && (
+      <section class="section">
+        <div class="section-head">
+          <h2 class="serif">Cinema &amp; Culture</h2>
+          <a href="/culture/" class="label">Full index →</a>
+        </div>
+        {culture.slice(0, 5).map((e) => (
+          <div class="index-row">
+            <span class="label">{e.data.type}</span>
+            <a href={`/culture/${e.id}/`} class="serif" style="font-size: 1.75rem">
+              {e.data.work}
+              {e.data.creator && (
+                <span class="muted" style="font-size: 1.1rem; font-style: italic">
+                  {' '}{e.data.creator}{e.data.year ? `, ${e.data.year}` : ''}
+                </span>
+              )}
+            </a>
+            <span class="muted" style="font-size: 0.875rem">{e.data.summary}</span>
+          </div>
+        ))}
+        <hr class="rule" />
+      </section>
+    )}
+
+    {journal.length > 0 && (
+      <section class="section">
+        <div class="section-head">
+          <h2 class="serif">From the Journal</h2>
+          <a href="/journal/" class="label">All entries →</a>
+        </div>
+        <div class="grid-three">
+          {journal.slice(0, 3).map((e) => (
+            <article>
+              <p class="label" style="margin: 0 0 8px">{fmt(e.data.date)}</p>
+              <h3 class="serif" style="font-size: 1.75rem"><a href={`/journal/${e.id}/`}>{e.data.title}</a></h3>
+              <p class="muted" style="font-size: 0.95rem; margin: 8px 0 0">{e.data.summary}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <div class="closing">
+      <p class="serif">
+        Something to say? <a href={`mailto:${site.email}`}>Write to me.</a>
+      </p>
+    </div>
+  </div>
+</BaseLayout>
