@@ -1,0 +1,85 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { sections } from '../../data/site';
+
+export function getStaticPaths() {
+  return Object.keys(sections).map((section) => ({ params: { section } }));
+}
+
+const { section } = Astro.params;
+const info = sections[section];
+const entries = (await getCollection(section, ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
+);
+const fmt = (d) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+const cover = (e) => e.data.cover ?? e.data.images?.[0]?.src;
+---
+
+<BaseLayout title={info.title} description={info.intro}>
+  <div class="wrap">
+    <header class="page-head">
+      <h1 class="serif page-title">{info.title}</h1>
+      <p class="page-lead">{info.intro}</p>
+    </header>
+
+    {entries.length === 0 && <p class="empty">Nothing has been published here yet.</p>}
+
+    {info.layout === 'cards' && (
+      <div class="cards">
+        {entries.map((e) => (
+          <article>
+            <a href={`/${section}/${e.id}/`}>
+              {cover(e) ? (
+                <img class="photo" src={cover(e)} alt={e.data.coverAlt ?? ''} style="aspect-ratio: 3 / 2" loading="lazy" />
+              ) : (
+                <div class="ph" style="aspect-ratio: 3 / 2">Cover image</div>
+              )}
+              <p class="label" style="margin: 18px 0 8px">{e.data.location ?? e.data.category ?? info.title} · {fmt(e.data.date)}</p>
+              <h2 class="serif" style="font-size: 1.9rem">{e.data.title}</h2>
+            </a>
+            <p class="muted" style="margin: 10px 0 0; font-size: 0.95rem">{e.data.summary}</p>
+          </article>
+        ))}
+      </div>
+    )}
+
+    {info.layout === 'gallery' && (
+      <div class="masonry">
+        {entries.map((e) => (
+          <figure>
+            <a href={`/${section}/${e.id}/`}>
+              {cover(e) ? (
+                <img class="photo" src={cover(e)} alt={e.data.coverAlt ?? e.data.images?.[0]?.alt ?? ''} loading="lazy" />
+              ) : (
+                <div class="ph" style="aspect-ratio: 3 / 2">Cover image</div>
+              )}
+              <figcaption>
+                <p class="label" style="margin: 14px 0 4px">{e.data.location ?? ''} {e.data.location ? '·' : ''} {fmt(e.data.date)}</p>
+                <span class="serif" style="font-size: 1.5rem; display: block">{e.data.title}</span>
+              </figcaption>
+            </a>
+          </figure>
+        ))}
+      </div>
+    )}
+
+    {info.layout === 'index' && (
+      <div class="list-wrap">
+        {entries.map((e) => (
+          <a href={`/${section}/${e.id}/`} class="index-row">
+            <span class="label">{e.data.type ?? fmt(e.data.date)}</span>
+            <span class="serif" style="font-size: 1.75rem">
+              {e.data.work ?? e.data.title}
+              {e.data.creator && (
+                <span class="muted" style="font-size: 1.1rem; font-style: italic"> {e.data.creator}{e.data.year ? `, ${e.data.year}` : ''}</span>
+              )}
+            </span>
+            <span class="muted" style="font-size: 0.875rem">{e.data.summary}</span>
+          </a>
+        ))}
+        <hr class="rule" />
+      </div>
+    )}
+  </div>
+</BaseLayout>

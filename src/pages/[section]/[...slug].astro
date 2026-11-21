@@ -1,0 +1,80 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { sections } from '../../data/site';
+
+export async function getStaticPaths() {
+  const paths = [];
+  for (const section of Object.keys(sections)) {
+    const entries = await getCollection(section, ({ data }) => !data.draft);
+    for (const entry of entries) {
+      paths.push({ params: { section, slug: entry.id }, props: { entry } });
+    }
+  }
+  return paths;
+}
+
+const { entry } = Astro.props;
+const { section } = Astro.params;
+const info = sections[section];
+const d = entry.data;
+const { Content } = await render(entry);
+
+const date = d.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+const minutes = Math.max(1, Math.round((entry.body ?? '').trim().split(/\s+/).length / 220));
+const stars = d.rating ? '★'.repeat(d.rating) + '☆'.repeat(5 - d.rating) : '';
+
+let kicker = [];
+if (section === 'travel') {
+  kicker = [[d.location, d.country].filter(Boolean).join(', '), d.travelDates ?? date];
+} else if (section === 'culture') {
+  kicker = [d.type, date];
+} else if (section === 'photography') {
+  kicker = [d.location, date, `${d.images.length} photographs`].filter(Boolean);
+} else {
+  kicker = [d.category ?? info.title, date, `${minutes} min read`];
+}
+const cover = d.cover ?? (section === 'photography' ? undefined : undefined);
+---
+
+<BaseLayout title={d.title} description={d.summary} image={d.cover ?? d.images?.[0]?.src}>
+  <div class="wrap">
+    <header class="article-head">
+      <p class="label" style="margin: 0 0 18px">{kicker.join(' · ')}</p>
+      <h1 class="serif article-title">{d.title}</h1>
+      <p class="article-lead">{d.summary}</p>
+      {section === 'culture' && (
+        <p class="muted" style="margin: 18px 0 0">
+          {d.work}{d.creator ? ` — ${d.creator}` : ''}{d.year ? `, ${d.year}` : ''} {stars && <span style="color: var(--olive); letter-spacing: 0.1em"> {stars}</span>}
+        </p>
+      )}
+    </header>
+
+    {cover && <img class="photo article-cover" src={cover} alt={d.coverAlt ?? ''} style="max-height: 640px" />}
+
+    <div class="prose">
+      <Content />
+    </div>
+
+    {section === 'photography' && d.images.length > 0 && (
+      <div class="essay-photos">
+        {d.images.map((img) => (
+          <figure>
+            <img class="photo" src={img.src} alt={img.alt} loading="lazy" />
+            {(img.caption || img.location || img.date) && (
+              <figcaption class="caption">
+                {img.caption} {[img.location, img.date].filter(Boolean).length > 0 && <span style="letter-spacing: 0.06em">{[img.location, img.date].filter(Boolean).join(' · ')}</span>}
+              </figcaption>
+            )}
+          </figure>
+        ))}
+      </div>
+    )}
+
+    {d.tags.length > 0 && (
+      <div class="tags">{d.tags.map((t) => <span class="tag">{t}</span>)}</div>
+    )}
+
+    <a href={`/${section}/`} class="label back-link">Back to {info.title}</a>
+  </div>
+</BaseLayout>

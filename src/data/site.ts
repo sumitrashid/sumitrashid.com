@@ -28,6 +28,20 @@ export const site = {
     'It will change as I do, and that is rather the point.',
   ],
 
+  // HOMEPAGE PHOTOS: upload your photos to the "public/images" folder,
+  // then change the file names below (keep the /images/ part).
+  featuredPhoto: {
+    src: '/images/placeholder-portrait.svg',
+    alt: 'A placeholder for the featured photograph',
+    caption: 'Caption goes here.',
+    place: 'LOCATION · YEAR',
+  },
+  photoStrip: [
+    { src: '/images/placeholder-dark.svg', alt: 'Photograph placeholder', height: 420 },
+    { src: '/images/placeholder-portrait.svg', alt: 'Photograph placeholder', height: 540 },
+    { src: '/images/placeholder-dark.svg', alt: 'Photograph placeholder', height: 360 },
+  ],
+
   // MAIN MENU (top of every page)
   nav: [
     { label: 'Perspectives', href: '/perspectives/' },
@@ -38,9 +52,38 @@ export const site = {
     { label: 'About', href: '/about/' },
   ],
 
-  // FOOTER LINKS (the email, Instagram, LinkedIn and RSS are added automatically)
+  // FOOTER LINKS (email, Instagram, LinkedIn and RSS are added automatically)
   footerNav: [
     { label: 'About', href: '/about/' },
     { label: 'Professional Work', href: '/work/' },
   ],
+};
+
+// TITLES AND DESCRIPTIONS of each section's own page
+export const sections: Record<string, { title: string; intro: string; layout: string }> = {
+  perspectives: {
+    title: 'Perspectives',
+    intro: 'Essays, opinions and reflections on ideas that keep me thinking.',
+    layout: 'cards',
+  },
+  journal: {
+    title: 'Journal',
+    intro: 'Shorter notes and personal stories, written as they happen.',
+    layout: 'index',
+  },
+  travel: {
+    title: 'Travel & Places',
+    intro: 'Journeys and cultural observations from places near and far.',
+    layout: 'cards',
+  },
+  photography: {
+    title: 'Photography',
+    intro: 'Street, landscape, architecture and everyday life, in photo essays and series.',
+    layout: 'gallery',
+  },
+  culture: {
+    title: 'Cinema & Culture',
+    intro: 'Notes on films, books, music and art.',
+    layout: 'index',
+  },
 };
